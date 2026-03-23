@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <title>Skill-Barter Dashboard</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -89,6 +91,27 @@ body {
 
 <body>
 
+<!-- Profile Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow">
+      <div class="modal-body p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0">User Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div id="profileContent">
+            <div class="text-center text-muted">Loading...</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="sidebar shadow-lg">
 <h5>Skill-Barter Network</h5>
 <ul class="nav flex-column gap-2">
@@ -164,98 +187,200 @@ grow skills, and build a smarter future together.
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 
 <script>
 const searchInput = document.getElementById('searchInput');
 const searchResults = document.getElementById('searchResults');
-
-// CSRF token from meta tag
 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-// Fetch and display skills on input
-searchInput.addEventListener('input', function() {
+
+// ================= SEARCH =================
+searchInput.addEventListener('input', function () {
+
     const query = this.value.trim();
+
     if (!query) {
         searchResults.style.display = 'none';
         searchResults.innerHTML = '';
         return;
     }
 
-    fetch(`/search-skills?q=${encodeURIComponent(query)}`, {
-        headers: { 'X-CSRF-TOKEN': token }
-    })
-    .then(res => {
-        if (!res.ok) throw new Error('Network response was not OK');
-        return res.json();
-    })
-    .then(data => {
-        if (!data.length) {
-            searchResults.innerHTML = '<div class="p-2 text-muted">No results found</div>';
+    fetch(`/search-skills?q=${encodeURIComponent(query)}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Search failed");
+            return res.json();
+        })
+        .then(data => {
+
+            if (!data.length) {
+                searchResults.innerHTML =
+                    `<div class="p-3 text-muted">No skills found</div>`;
+                searchResults.style.display = 'block';
+                return;
+            }
+
+            searchResults.innerHTML = data.map(skill => {
+
+                const username = skill.user ? skill.user.username : 'Unknown';
+                const userId = skill.user ? skill.user.id : null;
+
+                return `
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1 fw-bold">${skill.name}</h6>
+                            <small class="text-muted">
+                                Offered by ${username}
+                            </small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            ${userId ? `
+                                <button class="btn btn-sm btn-outline-primary"
+                                    onclick="openProfile(${userId})">
+                                    Profile
+                                </button>
+                            ` : ''}
+
+                            ${userId ? `
+                                <button class="btn btn-sm btn-success"
+                                    onclick="sendRequest(${skill.id}, ${userId}, this)">
+                                    Request
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
             searchResults.style.display = 'block';
-            return;
-        }
-
-        searchResults.innerHTML = data.map(r => `
-            <div class="card mb-2 shadow-sm p-2 d-flex justify-content-between align-items-center">
-                <div>
-                    <h6 class="mb-1 fw-bold">${r.skill_name ?? 'Unknown Skill'}</h6>
-                    <small>by ${r.user?.username ?? 'Unknown User'}</small>
-                </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" onclick="openProfile(${r.user?.id ?? 0})">Profile</button>
-                    <button class="btn btn-sm btn-success" onclick="sendRequest(event, ${r.id ?? 0}, ${r.user?.id ?? 0})">Request</button>
-                </div>
-            </div>
-        `).join('');
-
-        searchResults.style.display = 'block';
-    })
-    .catch(err => {
-        console.error('Error fetching skills:', err);
-        searchResults.innerHTML = '<div class="p-2 text-danger">Error fetching results</div>';
-        searchResults.style.display = 'block';
-    });
+        })
+        .catch(err => {
+            console.error(err);
+            searchResults.innerHTML =
+                `<div class="p-3 text-danger">Error loading skills</div>`;
+            searchResults.style.display = 'block';
+        });
 });
 
-// Hide dropdown when clicking outside
-document.addEventListener('click', e => {
-    if (!searchResults.contains(e.target) && e.target !== searchInput) {
-        searchResults.style.display = 'none';
-    }
-});
 
-// Send request to user
-function sendRequest(event, skillId, userId) {
-    fetch(`/api/send-request`, {
+// ================= SEND REQUEST =================
+function sendRequest(skillId, toUserId, btn) {
+
+    if (!toUserId) return;
+
+    btn.disabled = true;
+    btn.innerText = "Sending...";
+
+    fetch('/send-request', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': token,
             'Accept': 'application/json'
         },
-        body: JSON.stringify({ skill_id: skillId, user_id: userId })
+        body: JSON.stringify({
+            to_user: toUserId,
+            skill_id: skillId
+        })
     })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message ?? 'Request sent');
-        if (event && event.target) {
-            event.target.disabled = true;
-            event.target.innerText = "Requested";
+    .then(res => res.json().then(data => ({
+        status: res.status,
+        body: data
+    })))
+    .then(response => {
+
+        console.log("Status:", response.status);
+        console.log("Response:", response.body);
+
+        if (response.status !== 200) {
+            throw new Error(response.body.message || "Request failed");
         }
+
+        btn.innerText = "Requested";
+        btn.classList.remove("btn-success");
+        btn.classList.add("btn-secondary");
     })
     .catch(err => {
-        console.error('Error sending request:', err);
-        alert('Error sending request');
+        btn.disabled = false;
+        btn.innerText = "Request";
+        console.error("Full Error:", err);
+        alert(err.message);
     });
 }
 
-// Open user profile
+
+// ================= PROFILE POPUP =================
 function openProfile(userId) {
-    if (!userId) return alert('Invalid user ID');
-    window.location.href = `/profile/${userId}`;
+
+    document.getElementById("profileContent").innerHTML =
+        '<div class="text-center text-muted">Loading...</div>';
+
+    fetch(`/user/${userId}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Profile load failed");
+            return res.json();
+        })
+        .then(user => {
+
+            console.log("User:", user);
+
+            const skillsHtml = user.skills && user.skills.length > 0
+                ? user.skills.map(skill =>
+                    `<span class="badge bg-primary me-1 mb-1">${skill.name}</span>`
+                  ).join('')
+                : '<span class="text-muted">No skills added</span>';
+
+            document.getElementById("profileContent").innerHTML = `
+    <div class="text-center mb-3">
+        <div style="
+            width:80px;
+            height:80px;
+            border-radius:50%;
+            background:#4f46e5;
+            color:white;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:28px;
+            margin:auto;
+        ">
+            ${user.name ? user.name.charAt(0).toUpperCase() : '?'}
+        </div>
+
+        <h5 class="mt-3 fw-bold">${user.name}</h5>
+        <p class="text-muted mb-0">User ID: ${user.id}</p>
+    </div>
+
+    <hr>
+
+    <p class="fw-bold mb-2">Skills:</p>
+    <div>${skillsHtml}</div>
+`;
+
+
+            const modalElement = document.getElementById('profileModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show();
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("profileContent").innerHTML =
+                '<div class="text-danger text-center">Unable to load profile</div>';
+        });
 }
+
+
+
+
+
 </script>
+
+
+
+
+
 
 
 

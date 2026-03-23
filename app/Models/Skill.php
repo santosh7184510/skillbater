@@ -12,7 +12,8 @@ class Skill extends Model
     protected $fillable = ['user_id','name','has_certificate','certificate_path'];
 
     public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+{
+    return $this->belongsTo(\App\Models\User::class);
+}
+
 }

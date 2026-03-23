@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skill Management</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
 :root { --primary-blue: #3b82f6; --bg-gray: #f0f2f5; }
 body { background-color: var(--bg-gray); padding: 20px; }
@@ -20,7 +22,7 @@ body { background-color: var(--bg-gray); padding: 20px; }
 }
 
 .upload-section { 
-    display: none; /* Default hidden */
+    display: none; 
     margin-top: 15px;
     padding: 15px;
     background: #eef2ff;
@@ -74,9 +76,8 @@ body { background-color: var(--bg-gray); padding: 20px; }
                     <button type="submit" class="btn btn-submit shadow">Submit Skills</button>
                 </div>
             </form>
-            <button onclick="history.back()" style="padding:10px 20px; border-radius:5px; cursor:pointer; margin-top:15px;">
-                Go Back
-            </button>
+
+            <button onclick="history.back()" class="btn btn-secondary mt-3">Go Back</button>
         </div>
     </div>
 </div>
@@ -84,7 +85,7 @@ body { background-color: var(--bg-gray); padding: 20px; }
 <script>
 let skillIndex = 1;
 
-// Add more skill blocks dynamically
+// Add new skill dynamically
 function addNewSkill() {
     const wrapper = document.getElementById('skillsWrapper');
     const newBlock = document.createElement('div');
@@ -110,7 +111,7 @@ function addNewSkill() {
     skillIndex++;
 }
 
-// Show/hide certificate upload based on dropdown
+// Show/hide certificate upload
 function checkSelection(select) {
     const uploadDiv = select.parentElement.nextElementSibling;
     if(select.value === "1") {
@@ -122,7 +123,7 @@ function checkSelection(select) {
     }
 }
 
-// Attach initial check to first skill block
+// Apply initial check on first skill block
 document.querySelectorAll('.cert-dropdown').forEach(select => checkSelection(select));
 </script>
 

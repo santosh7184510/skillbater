@@ -169,37 +169,6 @@ class AuthController extends Controller
     }
 
 
-    public function search(Request $request)
-{
-    $query = $request->q;
-
-    $skills = Skill::where('name', 'LIKE', "%{$query}%")
-        ->with('user:id,name') // eager load user name
-        ->get();
-
-    return response()->json($skills);
-}
-
-
-public function sendRequest(Request $request)
-{
-    $data = $request->validate([
-        'from_user_id' => 'required|exists:users,id',
-        'to_user_id' => 'required|exists:users,id',
-        'skill_id' => 'required|exists:skills,id',
-    ]);
-
-    \DB::table('requests')->insert([
-        'from_user_id' => $data['from_user_id'],
-        'to_user_id' => $data['to_user_id'],
-        'skill_id' => $data['skill_id'],
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    return response()->json(['success' => true]);
-}
-
 public function profile()
 {
     $user = Auth::user();  // get the logged-in user
@@ -223,6 +192,23 @@ public function savePhoto(Request $request)
 
     return response()->json(['success' => true, 'photo_url' => asset('storage/'.$filename)]);
 }
+
+public function userProfile($id)
+{
+    $user = \App\Models\User::with('skills')->find($id);
+
+    if (!$user) {
+        return response()->json(['message' => 'User not found'], 404);
+    }
+
+    return response()->json([
+        'id' => $user->user_id,
+        'name' => $user->username,      // ✅ send name
+        'skills' => $user->skills   // ✅ send skills
+    ]);
+}
+
+
 
 
 
