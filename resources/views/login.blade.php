@@ -1,59 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Skill Bater</title>
 
-<!-- ✅ CSRF TOKEN (VERY IMPORTANT) -->
+<!-- ✅ CSRF TOKEN -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<!-- Bootstrap -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
 body { background:#f5f7fb; font-family:Arial; }
-.auth-card { max-width:400px; margin:auto; margin-top:80px; padding:30px; background:#fff; border-radius:15px; }
+.card { max-width:400px; margin:auto; margin-top:80px; padding:30px; }
 .hidden { display:none; }
 </style>
 </head>
 
 <body>
 
-<div class="auth-card">
+<div class="card">
 
-    <h3 id="title">Register</h3>
+<h3 id="title">Register</h3>
 
-    <!-- MESSAGE -->
-    <div id="msg" style="color:red;"></div>
+<div id="msg" style="color:red;"></div>
 
-    <!-- REGISTER -->
-    <form id="registerForm">
-        @csrf
-        <input type="text" name="username" placeholder="Username" class="form-control mb-2">
-        <input type="email" name="email" placeholder="Email" class="form-control mb-2">
-        <input type="password" name="password" placeholder="Password" class="form-control mb-2">
-        <button type="button" class="btn btn-primary w-100" onclick="registerUser()">Register</button>
-    </form>
+<!-- REGISTER -->
+<form id="registerForm">
+    @csrf
+    <input type="text" name="username" placeholder="Username" class="form-control mb-2">
+    <input type="email" name="email" placeholder="Email" class="form-control mb-2">
+    <input type="password" name="password" placeholder="Password" class="form-control mb-2">
+    <button type="button" class="btn btn-primary w-100" onclick="registerUser()">Register</button>
+</form>
 
-    <!-- LOGIN -->
-    <form id="loginForm" class="hidden">
-        @csrf
-        <input type="text" name="user_id_or_email" placeholder="User ID or Email" class="form-control mb-2">
-        <input type="password" name="password" placeholder="Password" class="form-control mb-2">
-        <button type="button" class="btn btn-success w-100" onclick="loginUser()">Login</button>
-    </form>
+<!-- LOGIN -->
+<form id="loginForm" class="hidden">
+    @csrf
+    <input type="text" name="user_id_or_email" placeholder="User ID or Email" class="form-control mb-2">
+    <input type="password" name="password" placeholder="Password" class="form-control mb-2">
+    <button type="button" class="btn btn-success w-100" onclick="loginUser()">Login</button>
+</form>
 
-    <p class="text-center mt-3">
-        <span onclick="toggle()" style="cursor:pointer;color:blue;">Switch</span>
-    </p>
+<p class="text-center mt-3">
+    <span onclick="toggleForm()" style="cursor:pointer;color:blue;">Switch</span>
+</p>
 
 </div>
 
+<!-- ✅ JAVASCRIPT -->
 <script>
 
-// 🔁 Toggle
-function toggle(){
+// 🔁 Toggle form
+function toggleForm() {
     const reg = document.getElementById('registerForm');
     const log = document.getElementById('loginForm');
     const title = document.getElementById('title');
@@ -64,13 +64,13 @@ function toggle(){
     title.innerText = reg.classList.contains('hidden') ? 'Login' : 'Register';
 }
 
-// 🔐 GET CSRF TOKEN
-function getToken(){
+// 🔐 Get CSRF token
+function getToken() {
     return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 }
 
 // 📝 REGISTER
-function registerUser(){
+function registerUser() {
 
     const form = document.getElementById('registerForm');
     const data = new FormData(form);
@@ -91,8 +91,8 @@ function registerUser(){
     });
 }
 
-// 🔑 LOGIN (FIXED)
-function loginUser(){
+// 🔑 LOGIN
+function loginUser() {
 
     const form = document.getElementById('loginForm');
 
@@ -113,9 +113,9 @@ function loginUser(){
     })
     .then(res => res.json())
     .then(data => {
-        if(data.success){
+        if (data.success) {
             window.location.href = '/dashboard';
-        }else{
+        } else {
             document.getElementById('msg').innerText = data.message;
         }
     })
