@@ -1,5 +1,7 @@
 FROM php:8.2-apache
-
+RUN mkdir -p database
+RUN touch database/database.sqlite
+RUN php artisan migrate --force
 # Install packages
 RUN apt-get update && apt-get install -y \
     libzip-dev unzip git curl \
