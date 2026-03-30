@@ -1,129 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Skill Bater</title>
-
-<!-- ✅ CSRF TOKEN -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-body { background:#f5f7fb; font-family:Arial; }
-.card { max-width:400px; margin:auto; margin-top:80px; padding:30px; }
-.hidden { display:none; }
-</style>
+    <title>Login</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-
 <body>
 
-<div class="card">
+<h2>Login Page</h2>
 
-<h3 id="title">Register</h3>
+<input type="text" id="email" placeholder="Email"><br><br>
+<input type="password" id="password" placeholder="Password"><br><br>
 
-<div id="msg" style="color:red;"></div>
+<button onclick="login()">Login</button>
 
-<!-- REGISTER -->
-<form id="registerForm">
-    @csrf
-    <input type="text" name="username" placeholder="Username" class="form-control mb-2">
-    <input type="email" name="email" placeholder="Email" class="form-control mb-2">
-    <input type="password" name="password" placeholder="Password" class="form-control mb-2">
-    <button type="button" class="btn btn-primary w-100" onclick="registerUser()">Register</button>
-</form>
-
-<!-- LOGIN -->
-<form id="loginForm" class="hidden">
-    @csrf
-    <input type="text" name="user_id_or_email" placeholder="User ID or Email" class="form-control mb-2">
-    <input type="password" name="password" placeholder="Password" class="form-control mb-2">
-    <button type="button" class="btn btn-success w-100" onclick="loginUser()">Login</button>
-</form>
-
-<p class="text-center mt-3">
-    <span onclick="toggleForm()" style="cursor:pointer;color:blue;">Switch</span>
-</p>
-
-</div>
-
-<!-- ✅ JAVASCRIPT -->
 <script>
-
-// 🔁 Toggle form
-function toggleForm() {
-    const reg = document.getElementById('registerForm');
-    const log = document.getElementById('loginForm');
-    const title = document.getElementById('title');
-
-    reg.classList.toggle('hidden');
-    log.classList.toggle('hidden');
-
-    title.innerText = reg.classList.contains('hidden') ? 'Login' : 'Register';
-}
-
-// 🔐 Get CSRF token
-function getToken() {
-    return document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-}
-
-// 📝 REGISTER
-function registerUser() {
-
-    const form = document.getElementById('registerForm');
-    const data = new FormData(form);
-
-    fetch('/register', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': getToken()
-        },
-        body: data
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById('msg').innerText = data.message;
-    })
-    .catch(() => {
-        document.getElementById('msg').innerText = 'Server error';
-    });
-}
-
-// 🔑 LOGIN
-function loginUser() {
-
-    const form = document.getElementById('loginForm');
-
-    const user = form.querySelector('[name="user_id_or_email"]').value;
-    const pass = form.querySelector('[name="password"]').value;
-
+function login() {
     fetch('/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': getToken(),
-            'Accept': 'application/json'
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
         body: JSON.stringify({
-            user_id_or_email: user,
-            password: pass
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
         })
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) {
-            window.location.href = '/dashboard';
-        } else {
-            document.getElementById('msg').innerText = data.message;
-        }
-    })
-    .catch(() => {
-        document.getElementById('msg').innerText = 'Server error';
+        alert(data.message);
+        window.location.href = '/dashboard';
     });
 }
-
 </script>
 
 </body>

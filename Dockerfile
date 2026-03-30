@@ -11,20 +11,16 @@ RUN mv composer.phar /usr/local/bin/composer
 
 RUN composer install
 
-# ✅ Fix permissions
 RUN chmod -R 777 storage
 RUN chmod -R 777 bootstrap/cache
 
-# ✅ Enable rewrite
 RUN a2enmod rewrite
 
-# ✅ CHANGE APACHE ROOT (SAFE METHOD)
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 
 RUN sed -ri "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf
 RUN sed -ri "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# ✅ SQLite
 RUN mkdir -p database
 RUN touch database/database.sqlite
 
