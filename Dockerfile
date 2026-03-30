@@ -15,4 +15,4 @@ RUN composer install
 RUN mkdir -p database
 RUN touch database/database.sqlite
 
-CMD php artisan serve --host=0.0.0.0 --port=10000
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
