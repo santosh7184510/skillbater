@@ -18,14 +18,11 @@ RUN chmod -R 777 bootstrap/cache
 # ✅ Enable rewrite
 RUN a2enmod rewrite
 
-# ✅ FORCE APACHE ROOT (STRONG FIX)
-RUN echo '<VirtualHost *:80>
-    DocumentRoot /var/www/html/public
-    <Directory /var/www/html/public>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
+# ✅ CHANGE APACHE ROOT (SAFE METHOD)
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+
+RUN sed -ri "s!/var/www/html!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/sites-available/*.conf
+RUN sed -ri "s!/var/www/!${APACHE_DOCUMENT_ROOT}!g" /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # ✅ SQLite
 RUN mkdir -p database
