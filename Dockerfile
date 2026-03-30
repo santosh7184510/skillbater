@@ -10,7 +10,8 @@ RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 
 RUN composer install
-
+RUN chmod -R 777 storage
+RUN chmod -R 777 bootstrap/cache
 # ✅ Enable rewrite
 RUN a2enmod rewrite
 
