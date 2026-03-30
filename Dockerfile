@@ -10,13 +10,22 @@ RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 
 RUN composer install
+
+# ✅ Fix permissions
 RUN chmod -R 777 storage
 RUN chmod -R 777 bootstrap/cache
+
 # ✅ Enable rewrite
 RUN a2enmod rewrite
 
-# ✅ VERY IMPORTANT (THIS FIXES YOUR ISSUE)
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+# ✅ FORCE APACHE ROOT (STRONG FIX)
+RUN echo '<VirtualHost *:80>
+    DocumentRoot /var/www/html/public
+    <Directory /var/www/html/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # ✅ SQLite
 RUN mkdir -p database
