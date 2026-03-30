@@ -2,8 +2,11 @@
 <html>
 <head>
     <title>Login</title>
+
+    <!-- ✅ CSRF TOKEN (VERY IMPORTANT) -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
+
 <body>
 
 <h2>Login Page</h2>
@@ -13,6 +16,7 @@
 
 <button onclick="login()">Login</button>
 
+<!-- ✅ ADD JS HERE -->
 <script>
 function login() {
     fetch('/login', {
@@ -26,10 +30,19 @@ function login() {
             password: document.getElementById('password').value
         })
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(async res => {
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || "Invalid credentials");
+            return;
+        }
+
         alert(data.message);
         window.location.href = '/dashboard';
+    })
+    .catch(err => {
+        alert("Something went wrong");
     });
 }
 </script>
